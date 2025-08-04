@@ -12,7 +12,13 @@ const generateToken = (res, user, message) => {
   }); // 1 day expiration
   res.status(200).json({
     message,
-    user: { id: user._id, email: user.email, role: user.role, token },
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token,
+    },
   });
 };
 
