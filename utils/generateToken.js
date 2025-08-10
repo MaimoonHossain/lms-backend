@@ -17,6 +17,7 @@ const generateToken = (res, user, message) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      photoUrl: user.photoUrl,
       token,
     },
   });

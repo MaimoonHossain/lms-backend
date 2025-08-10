@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import generateToken from "../utils/generateToken.js";
+import { deleteMedia, uploadMedia } from "../utils/cloudinary.js";
 
 export const register = async (req, res) => {
   try {
@@ -95,24 +96,46 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
+function extractCloudinaryPublicId(url) {
+  const parts = url.split("/");
+  const filename = parts.pop();
+  const publicId = filename.split(".")[0];
+  return publicId;
+}
+
 export const updateUserProfile = async (req, res) => {
   try {
     const { name } = req.body;
     const profilePhoto = req.file;
 
-    // Validate input
     if (!name) {
       return res.status(400).json({ message: "Name is required" });
     }
 
-    // Find user and update
-    const user = await User.findByIdAndUpdate(req.id, { name }).select(
-      "-password"
-    );
-
+    // Find the user first
+    const user = await User.findById(req.id).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    // Update name
+    user.name = name;
+
+    // If there's a new profile photo
+    if (profilePhoto) {
+      // Delete old photo if exists
+      if (user.photoUrl) {
+        const publicId = extractCloudinaryPublicId(user.photoUrl);
+        await deleteMedia(publicId);
+      }
+
+      // Upload new one
+      const uploadResponse = await uploadMedia(profilePhoto);
+      user.photoUrl = uploadResponse.secure_url;
+    }
+
+    // Save changes
+    await user.save();
 
     return res.status(200).json({
       message: "Profile updated successfully",
