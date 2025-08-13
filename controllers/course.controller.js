@@ -2,8 +2,15 @@ import Course from "../models/course.model.js";
 
 export const createCourse = async (req, res) => {
   try {
-    const { title, subTitle, description, category, level, thumbnail } =
-      req.body;
+    const {
+      title,
+      subTitle,
+      description,
+      category,
+      level,
+      thumbnail,
+      isPublished,
+    } = req.body;
 
     if (!title || !description || !category || !level || !thumbnail) {
       return res.status(400).json({ message: "All fields are required" });
@@ -16,6 +23,7 @@ export const createCourse = async (req, res) => {
       category,
       level,
       thumbnail,
+      isPublished,
       creator: req.id,
     });
 
@@ -30,8 +38,15 @@ export const createCourse = async (req, res) => {
 export const editCourse = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, subTitle, description, category, level, thumbnail } =
-      req.body;
+    const {
+      title,
+      subTitle,
+      description,
+      category,
+      level,
+      thumbnail,
+      isPublished,
+    } = req.body;
     const course = await Course.findById(id);
 
     if (!course) {
@@ -44,6 +59,7 @@ export const editCourse = async (req, res) => {
     course.category = category;
     course.level = level;
     course.thumbnail = thumbnail;
+    course.isPublished = isPublished;
 
     const updatedCourse = await course.save();
     res.status(200).json(updatedCourse);
