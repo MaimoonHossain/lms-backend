@@ -3,11 +3,18 @@ import { deleteMedia, uploadMedia } from "../utils/cloudinary.js";
 
 export const createCourse = async (req, res) => {
   try {
-    const { title, subTitle, description, category, level, isPublished } =
-      req.body;
+    const {
+      title,
+      subTitle,
+      description,
+      category,
+      level,
+      price,
+      isPublished,
+    } = req.body;
     const thumbnailFile = req.file;
 
-    if (!title || !description || !category || !level) {
+    if (!title || !description || !category || !level || !price) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -27,6 +34,7 @@ export const createCourse = async (req, res) => {
       thumbnail: thumbnailUrl,
       isPublished,
       creator: req.id,
+      price,
     });
 
     const savedCourse = await newCourse.save();
@@ -53,6 +61,7 @@ export const editCourse = async (req, res) => {
       description,
       category,
       level,
+      price,
       isPublished,
       thumbnailUrl, // from frontend if no new file uploaded
     } = req.body;
@@ -70,6 +79,7 @@ export const editCourse = async (req, res) => {
     course.description = description;
     course.category = category;
     course.level = level;
+    course.price = price;
     course.isPublished = isPublished;
 
     // Handle thumbnail
