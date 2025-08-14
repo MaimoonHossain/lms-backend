@@ -38,3 +38,10 @@ export const deleteVideo = async (publicId) => {
     throw new Error("Cloudinary video delete failed");
   }
 };
+
+export const extractCloudinaryPublicId = (url) => {
+  const parts = url.split("/");
+  const filename = parts.pop();
+  const publicId = filename.split(".")[0];
+  return publicId;
+};

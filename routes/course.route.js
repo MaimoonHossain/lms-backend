@@ -4,6 +4,7 @@ import isAuthenticated from "../middlewares/isAuthenticated.js";
 import upload from "../utils/multer.js";
 import {
   createCourse,
+  deleteCourse,
   editCourse,
   getCourseById,
   getCreatorCourses,
@@ -19,5 +20,6 @@ router
   .patch(isAuthenticated, upload.single("thumbnail"), editCourse);
 router.route("/get-course-by-id/:id").get(isAuthenticated, getCourseById);
 router.route("/").get(isAuthenticated, getCreatorCourses);
+router.route("/delete-course/:id").delete(isAuthenticated, deleteCourse);
 
 export default router;

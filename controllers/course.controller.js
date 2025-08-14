@@ -1,5 +1,9 @@
 import Course from "../models/course.model.js";
-import { deleteMedia, uploadMedia } from "../utils/cloudinary.js";
+import {
+  deleteMedia,
+  extractCloudinaryPublicId,
+  uploadMedia,
+} from "../utils/cloudinary.js";
 
 export const createCourse = async (req, res) => {
   try {
@@ -44,13 +48,6 @@ export const createCourse = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-
-function extractCloudinaryPublicId(url) {
-  const parts = url.split("/");
-  const filename = parts.pop();
-  const publicId = filename.split(".")[0];
-  return publicId;
-}
 
 export const editCourse = async (req, res) => {
   try {
@@ -137,6 +134,29 @@ export const getCreatorCourses = async (req, res) => {
     res.status(200).json(courses);
   } catch (error) {
     console.error("Error fetching courses:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    // Delete thumbnail from Cloudinary if it exists
+    if (course.thumbnail) {
+      const publicId = extractCloudinaryPublicId(course.thumbnail);
+      await deleteMedia(publicId);
+    }
+
+    await Course.findByIdAndDelete(id);
+    res.status(200).json({ message: "Course deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting course:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

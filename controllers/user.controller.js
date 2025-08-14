@@ -1,7 +1,11 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import generateToken from "../utils/generateToken.js";
-import { deleteMedia, uploadMedia } from "../utils/cloudinary.js";
+import {
+  deleteMedia,
+  extractCloudinaryPublicId,
+  uploadMedia,
+} from "../utils/cloudinary.js";
 
 export const register = async (req, res) => {
   try {
@@ -95,13 +99,6 @@ export const getUserProfile = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-function extractCloudinaryPublicId(url) {
-  const parts = url.split("/");
-  const filename = parts.pop();
-  const publicId = filename.split(".")[0];
-  return publicId;
-}
 
 export const updateUserProfile = async (req, res) => {
   try {
