@@ -11,8 +11,12 @@ import {
 
 const router = express.Router();
 
-router.route("/create").post(isAuthenticated, createCourse);
-router.route("/edit/:id").patch(isAuthenticated, editCourse);
+router
+  .route("/create")
+  .post(isAuthenticated, upload.single("thumbnail"), createCourse);
+router
+  .route("/edit/:id")
+  .patch(isAuthenticated, upload.single("thumbnail"), editCourse);
 router.route("/get-course-by-id/:id").get(isAuthenticated, getCourseById);
 router.route("/").get(isAuthenticated, getCreatorCourses);
 

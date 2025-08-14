@@ -1,28 +1,30 @@
 import Course from "../models/course.model.js";
+import { deleteMedia, uploadMedia } from "../utils/cloudinary.js";
 
 export const createCourse = async (req, res) => {
   try {
-    const {
-      title,
-      subTitle,
-      description,
-      category,
-      level,
-      thumbnail,
-      isPublished,
-    } = req.body;
+    const { title, subTitle, description, category, level, isPublished } =
+      req.body;
+    const thumbnailFile = req.file;
 
-    if (!title || !description || !category || !level || !thumbnail) {
+    if (!title || !description || !category || !level) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    let thumbnailUrl = "";
+    if (thumbnailFile) {
+      const uploadResponse = await uploadMedia(thumbnailFile);
+      thumbnailUrl = uploadResponse.secure_url;
+    } else {
+      return res.status(400).json({ message: "Thumbnail image is required" });
+    }
     const newCourse = new Course({
       title,
       subTitle,
       description,
       category,
       level,
-      thumbnail,
+      thumbnail: thumbnailUrl,
       isPublished,
       creator: req.id,
     });
@@ -35,6 +37,13 @@ export const createCourse = async (req, res) => {
   }
 };
 
+function extractCloudinaryPublicId(url) {
+  const parts = url.split("/");
+  const filename = parts.pop();
+  const publicId = filename.split(".")[0];
+  return publicId;
+}
+
 export const editCourse = async (req, res) => {
   try {
     const { id } = req.params;
@@ -44,22 +53,39 @@ export const editCourse = async (req, res) => {
       description,
       category,
       level,
-      thumbnail,
       isPublished,
+      thumbnailUrl, // from frontend if no new file uploaded
     } = req.body;
-    const course = await Course.findById(id);
 
+    const file = req.file; // new uploaded thumbnail
+
+    const course = await Course.findById(id);
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
+    // Update basic fields
     course.title = title;
     course.subTitle = subTitle;
     course.description = description;
     course.category = category;
     course.level = level;
-    course.thumbnail = thumbnail;
     course.isPublished = isPublished;
+
+    // Handle thumbnail
+    if (file) {
+      // Delete old thumbnail if exists
+      if (course.thumbnail) {
+        const publicId = extractCloudinaryPublicId(course.thumbnail);
+        await deleteMedia(publicId);
+      }
+      // Upload new thumbnail
+      const uploadResponse = await uploadMedia(file);
+      course.thumbnail = uploadResponse.secure_url;
+    } else if (thumbnailUrl) {
+      // Keep old URL if no new file uploaded
+      course.thumbnail = thumbnailUrl;
+    }
 
     const updatedCourse = await course.save();
     res.status(200).json(updatedCourse);
