@@ -1,4 +1,5 @@
 import Course from "../models/course.model.js";
+import { Lecture } from "../models/lecture.model.js";
 import {
   deleteMedia,
   extractCloudinaryPublicId,
@@ -157,6 +158,99 @@ export const deleteCourse = async (req, res) => {
     res.status(200).json({ message: "Course deleted successfully" });
   } catch (error) {
     console.error("Error deleting course:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const createLecture = async (req, res) => {
+  try {
+    const { lectureTitle } = req.body;
+    const { courseId } = req.params;
+
+    if (!lectureTitle || !courseId) {
+      return res
+        .status(400)
+        .json({ message: "Lecture title and course ID are required" });
+    }
+
+    const newLecture = await Lecture.create({ lectureTitle });
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    course.lectures.push(newLecture._id);
+    await course.save();
+
+    res
+      .status(201)
+      .json({ newLecture, message: "Lecture created successfully" });
+  } catch (error) {
+    console.error("Error creating lecture:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getAllLecturesByCourseId = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const course = await Course.findById(courseId).populate("lectures");
+
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    res.status(200).json(course.lectures);
+  } catch (error) {
+    console.error("Error fetching lectures:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const editLecture = async (req, res) => {
+  try {
+    const { lectureId } = req.params;
+    const { lectureTitle } = req.body;
+
+    if (!lectureTitle || !lectureId) {
+      return res.status(400).json({
+        message: "Lecture title, course ID, and lecture ID are required",
+      });
+    }
+
+    const lecture = await Lecture.findById(lectureId);
+
+    if (!lecture) {
+      return res.status(404).json({ message: "Lecture not found" });
+    }
+
+    lecture.lectureTitle = lectureTitle;
+    await lecture.save();
+
+    res.status(200).json({ message: "Lecture updated successfully", lecture });
+  } catch (error) {
+    console.error("Error editing lecture:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteLecture = async (req, res) => {
+  try {
+    const { lectureId } = req.params;
+
+    const lecture = await Lecture.findById(lectureId);
+
+    if (!lecture) {
+      return res.status(404).json({ message: "Lecture not found" });
+    }
+
+    await Lecture.findByIdAndDelete(lectureId);
+    res.status(200).json({ message: "Lecture deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting lecture:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
