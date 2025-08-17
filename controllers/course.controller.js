@@ -212,8 +212,8 @@ export const getAllLecturesByCourseId = async (req, res) => {
 
 export const editLecture = async (req, res) => {
   try {
-    const { lectureId } = req.params;
-    const { lectureTitle } = req.body;
+    const { courseId, lectureId } = req.params;
+    const { lectureTitle, videoInfo, isPreviewFree } = req.body;
 
     if (!lectureTitle || !lectureId) {
       return res.status(400).json({
