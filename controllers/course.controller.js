@@ -292,3 +292,25 @@ export const getLectureById = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const togglePublishCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    course.isPublished = !course.isPublished;
+    await course.save();
+
+    res
+      .status(200)
+      .json({ message: "Course publication status updated", course });
+  } catch (error) {
+    console.error("Error toggling course publication:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -13,6 +13,7 @@ import {
   getCourseById,
   getCreatorCourses,
   getLectureById,
+  togglePublishCourse,
 } from "../controllers/course.controller.js";
 
 const router = express.Router();
@@ -37,5 +38,8 @@ router
 router
   .route("/lecture-get-by-id/:lectureId")
   .get(isAuthenticated, getLectureById);
+router
+  .route("/toggle-publish/:courseId")
+  .patch(isAuthenticated, togglePublishCourse);
 
 export default router;
