@@ -2,6 +2,7 @@ import Course from "../models/course.model.js";
 import { Lecture } from "../models/lecture.model.js";
 import {
   deleteMedia,
+  deleteVideo,
   extractCloudinaryPublicId,
   uploadMedia,
 } from "../utils/cloudinary.js";
@@ -215,9 +216,9 @@ export const editLecture = async (req, res) => {
     const { courseId, lectureId } = req.params;
     const { lectureTitle, videoInfo, isPreviewFree } = req.body;
 
-    if (!lectureTitle || !lectureId) {
+    if (!lectureId) {
       return res.status(400).json({
-        message: "Lecture title, course ID, and lecture ID are required",
+        message: "Lecture ID is required",
       });
     }
 
@@ -227,8 +228,18 @@ export const editLecture = async (req, res) => {
       return res.status(404).json({ message: "Lecture not found" });
     }
 
-    lecture.lectureTitle = lectureTitle;
+    if (lectureTitle) lecture.lectureTitle = lectureTitle;
+    if (videoInfo?.videoUrl) lecture.videoUrl = videoInfo?.videoUrl;
+    if (videoInfo?.publicId) lecture.publicId = videoInfo?.publicId;
+    if (isPreviewFree) lecture.isPreviewFree = isPreviewFree;
+
     await lecture.save();
+
+    const course = await Course.findById(courseId);
+    if (course && !course.lectures.includes(lecture._id)) {
+      course.lectures.push(lecture._id);
+      await course.save();
+    }
 
     res.status(200).json({ message: "Lecture updated successfully", lecture });
   } catch (error) {
@@ -248,9 +259,36 @@ export const deleteLecture = async (req, res) => {
     }
 
     await Lecture.findByIdAndDelete(lectureId);
+
+    if (lecture.publicId) {
+      await deleteVideo(lecture.publicId);
+    }
+
+    await Course.updateOne(
+      { lectures: lectureId },
+      { $pull: { lectures: lectureId } }
+    );
+
     res.status(200).json({ message: "Lecture deleted successfully" });
   } catch (error) {
     console.error("Error deleting lecture:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getLectureById = async (req, res) => {
+  try {
+    const { lectureId } = req.params;
+
+    const lecture = await Lecture.findById(lectureId);
+
+    if (!lecture) {
+      return res.status(404).json({ message: "Lecture not found" });
+    }
+
+    res.status(200).json(lecture);
+  } catch (error) {
+    console.error("Error fetching lecture:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

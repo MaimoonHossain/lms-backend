@@ -12,6 +12,7 @@ import {
   getAllLecturesByCourseId,
   getCourseById,
   getCreatorCourses,
+  getLectureById,
 } from "../controllers/course.controller.js";
 
 const router = express.Router();
@@ -33,5 +34,8 @@ router
 router
   .route("/lecture-delete/:lectureId")
   .delete(isAuthenticated, deleteLecture);
+router
+  .route("/lecture-get-by-id/:lectureId")
+  .get(isAuthenticated, getLectureById);
 
 export default router;
