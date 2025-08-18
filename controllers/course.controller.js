@@ -214,7 +214,7 @@ export const getAllLecturesByCourseId = async (req, res) => {
 export const editLecture = async (req, res) => {
   try {
     const { courseId, lectureId } = req.params;
-    const { lectureTitle, videoInfo, isPreviewFree } = req.body;
+    const { lectureTitle, videoUrl, publicId, isPreviewFree } = req.body;
 
     if (!lectureId) {
       return res.status(400).json({
@@ -229,8 +229,8 @@ export const editLecture = async (req, res) => {
     }
 
     if (lectureTitle) lecture.lectureTitle = lectureTitle;
-    if (videoInfo?.videoUrl) lecture.videoUrl = videoInfo?.videoUrl;
-    if (videoInfo?.publicId) lecture.publicId = videoInfo?.publicId;
+    if (videoUrl) lecture.videoUrl = videoUrl;
+    if (publicId) lecture.publicId = publicId;
     if (isPreviewFree) lecture.isPreviewFree = isPreviewFree;
 
     await lecture.save();
