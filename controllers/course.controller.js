@@ -1,5 +1,5 @@
 import Course from "../models/course.model.js";
-import { Lecture } from "../models/lecture.model.js";
+import Lecture from "../models/lecture.model.js";
 import {
   deleteMedia,
   deleteVideo,
