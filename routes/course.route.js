@@ -13,6 +13,7 @@ import {
   getCourseById,
   getCreatorCourses,
   getLectureById,
+  getPublishedCourses,
   togglePublishCourse,
 } from "../controllers/course.controller.js";
 
@@ -24,6 +25,9 @@ router
 router
   .route("/edit/:id")
   .patch(isAuthenticated, upload.single("thumbnail"), editCourse);
+router
+  .route("/get-published-courses")
+  .get(isAuthenticated, getPublishedCourses);
 router.route("/get-course-by-id/:id").get(isAuthenticated, getCourseById);
 router.route("/").get(isAuthenticated, getCreatorCourses);
 router.route("/delete-course/:id").delete(isAuthenticated, deleteCourse);
