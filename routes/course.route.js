@@ -14,6 +14,7 @@ import {
   getCreatorCourses,
   getLectureById,
   getPublishedCourses,
+  searchCourse,
   togglePublishCourse,
 } from "../controllers/course.controller.js";
 
@@ -22,6 +23,7 @@ const router = express.Router();
 router
   .route("/create")
   .post(isAuthenticated, upload.single("thumbnail"), createCourse);
+router.route("/search").get(isAuthenticated, searchCourse);
 router
   .route("/edit/:id")
   .patch(isAuthenticated, upload.single("thumbnail"), editCourse);

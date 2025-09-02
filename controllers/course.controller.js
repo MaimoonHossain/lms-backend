@@ -140,6 +140,64 @@ export const getCreatorCourses = async (req, res) => {
   }
 };
 
+export const searchCourse = async (req, res) => {
+  try {
+    let { query = "", categories = [], sortByPrice = "" } = req.query;
+
+    console.log("Categories received:", categories);
+
+    // Handle categories[] case (from URLs like ?categories[]=Next+JS)
+    if (!categories && req.query["categories[]"]) {
+      categories = Array.isArray(req.query["categories[]"])
+        ? req.query["categories[]"]
+        : [req.query["categories[]"]];
+    }
+
+    // Ensure categories is always an array
+    if (typeof categories === "string") categories = [categories];
+
+    const andFilters = [{ isPublished: true }];
+
+    // Search query filter
+    if (query.trim() !== "") {
+      andFilters.push({
+        $or: [
+          { title: { $regex: query, $options: "i" } },
+          { subTitle: { $regex: query, $options: "i" } },
+          { category: { $regex: query, $options: "i" } },
+        ],
+      });
+    }
+
+    // Category filter
+    if (categories.length > 0) {
+      andFilters.push({
+        $or: categories.map((cat) => ({
+          category: { $regex: `^${cat}$`, $options: "i" },
+        })),
+      });
+    }
+
+    const searchCriteria = { $and: andFilters };
+
+    // Sort
+    const sortOptions = {};
+    if (sortByPrice === "asc") sortOptions.price = 1;
+    else if (sortByPrice === "desc") sortOptions.price = -1;
+
+    const courses = await Course.find(searchCriteria)
+      .populate({ path: "creator", select: "name photoUrl" })
+      .sort(sortOptions);
+
+    console.log("Search Criteria:", JSON.stringify(searchCriteria, null, 2));
+
+    res.status(200).json(courses);
+  } catch (error) {
+    console.error("Error searching courses:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;
